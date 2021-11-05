@@ -3,7 +3,8 @@
 """
 Created on Thu Nov  4 10:35:02 2021
 
-@author: andor
+@author: Andor Horvath
+@license: GPLv2
 """
 
 import pymysql
@@ -71,24 +72,87 @@ class Repertoire_MySQL:
         query1 = ""
         while query1 != query:
             query1 = query
-            query = re.sub(r'(.*)\[\[(.*?)\]\](.*)', r'\1' +
+            if(method == 'LIKE'):
+                query = re.sub(r'(.*)\[\[(.*?)\]\](.*)', r'\1' +
                            self.replaceListSQL(r'\2', self.tolerance) +
                            r'\3', query)
+            else:
+                query = re.sub(r'(.*)\[\[(.*?)\]\](.*)', r'\1' + r'\2' + r'\3', query)
         # print(query)
         return query
 
     def search(self, parameter, value=[''], method='LIKE'):
         """Search a parameter for certain value(s) on the database."""
         result = []
-        if type(value) is not list:
+        if(type(value) is not list):
             value = [value]
         for v in value:
+            if(type(v) is list and len(v) == 2):
+                if(v[0] == self.repid):
+                    v = v[1]
             v = str(v)
             result = result + self.executeQuery(
                 self.searchQuery(parameter, v, method))
         result = list(dict.fromkeys(result))
         result = mark(self.repid, result)
         return result
+
+    def show(self, parameter, idy):
+        """Return a list of results."""
+        result = []
+        idy = retrieve(self.repid, idy)
+        if(len(idy) > 0):
+            column = 1
+            for i in idy:
+                res = mark(self.repid, [i])
+                for p in parameter:
+                    r = self.executeQuery(
+                        self.connector[p][column].replace(
+                            '[[ID]]', str(i).strip("[]")))
+                    res.append(' '.join(r))
+                result.append(res)
+            # for a in range(len(result[0])):
+            #     c = []
+            #     for b in range(len(parameter)):
+            #         c.append(result[b][a])
+            #     res.append(c)
+        # result = mark(self.repid, result)
+        return result
+
+
+class MegaRep:
+    """Represents a collection of poetical databases."""
+    
+    def __init__(self, dbhost, dbuser, dbpassword, dbname, selected=[0]):
+        """Connect to the megarepdb database."""
+        megarepdb = pymysql.connect(host=dbhost, user=dbuser,
+                              password=dbpassword, database=dbname)
+        cursor_megarepdb = megarepdb.cursor()
+        cursor_megarepdb.execute(
+            "SELECT id_repertoire, id_dbtype, host, username, password, dbname, description FROM repertoire;")
+        self.rep = []
+        for a in cursor_megarepdb.fetchall():
+            if(selected == [0] or a[0] in selected):
+                print("Loading database: " + a[6])
+                if(a[1] == 1):
+                    self.rep.append(Repertoire_MySQL(
+                        a[0], a[2], a[3], a[4], a[5], a[6], cursor_megarepdb))
+        megarepdb.close()
+        self.main = self.search('mainlist')
+
+    def search(self, parameter, value=[''], method='LIKE'):
+        """Search all the databases."""
+        res = []
+        for a in self.rep:
+            res = res + a.search(parameter, value, method)
+        return res
+
+    def show(self, parameter, idy):
+        """Show a parameter of the results."""
+        res = []
+        for a in self.rep:
+            res = res + a.show(parameter, idy)
+        return res
 
     def msearch(self, parameter, value, method='LIKE'):
         """Search and return main variants belonging to the results."""
@@ -101,68 +165,15 @@ class Repertoire_MySQL:
         a = self.search(parameter, value, method)
         return repAnd(a, self.main)
 
-    def show(self, parameter, idy):
-        """Return a list of results."""
-        result = []
-        idy = retreive(self.repid, idy)
-        if(len(idy) > 0):
-            column = 1
-            for i in idy:
-                res = [i]
-                for p in parameter:
-                    r = self.executeQuery(
-                        self.connector[p][column].replace(
-                            '[[ID]]', str(i).strip("[]")))
-                    # print(r)
-                    res.append(' '.join(r))
-                result.append(res)
-            # for a in range(len(result[0])):
-            #     c = []
-            #     for b in range(len(parameter)):
-            #         c.append(result[b][a])
-            #     res.append(c)
-        return result
-
     def value(self, parameter, idy):
         """Return a list of values for a given parameter and ID list."""
-        result = []
-        idy = retreive(self.repid, idy)
-        if(len(idy) > 0):
-            column = 1
-            for i in idy:
-                r = self.executeQuery(
-                    self.connector[parameter][column].replace(
-                        '[[ID]]', str(i).strip("[]")))
-                if(type(r) is list):
-                    for rr in r:
-                        if(len(rr) > 0 and rr not in result):
-                            result.append(rr)
-                else:
-                    if(len(r) > 0 and r not in result):
-                        result.append(r)
-        return result
-
-def loadMegaRep(dbhost, dbuser, dbpassword, dbname, selected=[0]):
-    """Connect to the MegaRep database."""
-    megarep = pymysql.connect(host=dbhost, user=dbuser,
-                          password=dbpassword, database=dbname)
-    cursor_megarep = megarep.cursor()
-    cursor_megarep.execute(
-        "SELECT id_repertoire, id_dbtype, host, username, password, dbname, description FROM repertoire;")
-    rep = loadRep(cursor_megarep, cursor_megarep.fetchall(), selected)
-    return([cursor_megarep, cursor_megarep.fetchall(), rep])
-
-def loadRep(repcurs, dblist, selected=[0]):
-    """Load the list of selected databases into a list variable."""
-    reparray = []
-    for a in dblist:
-        if(selected == [0] or a[0] in selected):
-            print("Loading database: " + a[6])
-            if(a[1] == 1):
-                reparray.append(Repertoire_MySQL(
-                    a[0], a[2], a[3], a[4], a[5], a[6], repcurs))
-    return reparray
-
+        res = []
+        result = set()
+        for a in self.rep:
+            res = res + retrieve(a.repid, a.show([parameter], idy))
+        for b in res:
+            result.add(b[1])
+        return list(result)
 
 def mark(identification, listVariable):
     """Replace the elements of a list with id-element pairs."""
@@ -171,11 +182,11 @@ def mark(identification, listVariable):
     return listVariable
 
 
-def retreive(identification, listVariable):
-    """Retreive the elements of a marked list with a specific id."""
+def retrieve(identification, listVariable):
+    """retrieve the elements of a marked list with a specific id."""
     res = []
     for element in listVariable:
-        if(element[0] == identification):
+        if(element[0] == identification or identification == 0):
             res.append(element[1])
     return res
 
@@ -240,7 +251,7 @@ def repValues(data, index=1):
     return sorted(list(result))
 
 
-def display(result):
+def repDisplay(result):
     """Display results of a "show" command in a nicer way."""
     # res = repSort(result)
     res = result
