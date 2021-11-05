@@ -29,26 +29,50 @@ There is one catalogue currently hosted on gepeskonyv.org.
 
 The Python library (megarep.py) is designed to use this catalogue for accessing poetical databases, and also to provide some useful features in dealing with query results.
 
-### Basic use of the library
+### Basic search with the library
 
-The MegaRep library currently requires the pymysql and re libraries. After importing the library, it is necessary to establish a connection to the catalogue database. To obtain the password to the catalogue please write me an e-mail.
+The MegaRep library currently requires the pymysql and re libraries. After importing the library, it is necessary to establish a connection to the catalogue database. This is done by initializing an instance of the MegaRep class. (To obtain the password to the catalogue please write me an e-mail.)
 
     import megarep
-    mega = megarep.loadMegaRep(dbhost="gepeskonyv.org", dbuser="gepeskonyv_rpha_client",
+    mega = megarep.MegaRep(dbhost="gepeskonyv.org", dbuser="gepeskonyv_rpha_client",
                           dbpassword="***", dbname="gepeskonyv_MEGAREP")
 
-At this point, the variable "mega" is a list of all the collaborating databases. A for cycle can be used to search for something in all of the repertories.
+At this point, the variable "mega" represents the whole mega-repertory. You can search it as if it was one single database, but you can also use any of its member databases separate from the others.
 
-    query1 = []
-    for rep in mega:
-        query1 = query1 + rep.search('incipit', ['Ave'])
+    query1 = mega.search('incipit', ['Ave'])
+    print(query1)
 
-At the end of this code, the variable "query1" contains all of the poems that have the string "ave" in their incipit. The example shows that the default search method is case-insensitive and disregards spaces and punctuation. Every element of the result list is itself a list of two elements: the ID of the repertory and the ID of the variant/poem. This is why the list of results from database nr. 2 can be simply added to the results from database nr. 1 in the for loop: the results will still be differentiated.
+At the end of this code, the variable "query1" contains all of the poems that have the string "ave" in their incipit in any of the databases. The example shows that the default search method is case-insensitive and disregards spaces and punctuation. Every element of the result list is itself a list of two elements: the ID of the repertory and the ID of the variant/poem. This is why the list of results from database nr. 2 can be simply added to the results from database nr. 1 in the for loop: the results will still be differentiated.
 
 At it's current state, the mega-repertory connects two databases (Répertoire de la poésie hongroise ancienne and Le Nouveau Naetebus), and "query1" would look like this:
 
     [[1, 24373], [1, 24595], [1, 24604], [1, 24693], [1, 24694], [1, 24695], [1, 26926], [1, 27093], [1, 27356], [1, 27367], [1, 27693], [1, 28125], [1, 28340], [2, 3], [2, 8], [2, 14], [2, 18], [2, 22], [2, 23], [2, 95], [2, 161], [2, 162], [2, 163], [2, 164], [2, 165], [2, 215], [2, 259], [2, 260], [2, 261], [2, 347], [2, 353], [2, 354], [2, 372], [2, 386], [2, 402], [2, 403], [2, 408], [2, 412], [2, 413], [2, 444], [2, 447], [2, 449], [2, 458], [2, 459], [2, 460]]
 
-For listing the results in a more informative way, the "value" function can be used.
+For listing parameter values that belong to the poems represented by these numbers, the "show" function can be used.
 
-    
+    result1 = mega.show(['author', 'incipit'], query1)
+    print(result1)
+
+Here the output will be longer, but let's see the beginning and the end.
+
+    [[[1, 24373], '', 'Ave salutis hostia'], [[1, 24595], '', 'Patris sapientia, veritas divina'], [[1, 24604], '', 'O crux ave spes unica'], ..., [[2, 459], '', 'Ave virge Marie'], [[2, 460], '', 'Ave seynte Marie, mere al creatur']]
+
+Notice that "sapientia, veritas" contains "a...ve" and is shown as a query result. Of course, a more precise result set might be obtained if the search query uses regular expressions:
+
+    query1 = mega.search('incipit', ['(^|.+ )([Aa]ve)( .*|$)'], 'REGEXP')
+
+The tolerant search currently gives 45 hits, while the precise search only 31 hits. If needed, the library will be extended to other database servers as well (such as Oracle), but it has to be noted that there might be issues if two servers have a different interpretation of regular expression syntax.
+
+#### Variants and poems
+
+As noted before, some databases might use poems as their most basic structure, while in the case of other literary traditions, a more detailed approach might prove to be useful. You can consider poems or variants to be the basic unit of a database. If the database does not deal with variants, the MegaRep system considers "variant" as a synonym for "poem". On the other hand, for those databases where variants are the basic unit, some special parameters had to be added.
+
+1. mainlist: The MegaRep system considers data belonging to the poem as a whole to belong to the "main variant" of the poem. In the case of such databases, this "main variant" is an idealized, abstract entity, which does not have any original source. The parameter "mainlist" is a technical one, and it only has a "code_search" entry: it is used by the MegaRep library, which, when loading each database, uses this query to retreive all the variant IDs that belong to whole poems (or "main variants").
+2. poem: This parameter links variant IDs to poem IDs. If the database does not deal with variants, the output of this query will be the same as its input. In variant-based databases, "code_search" will return all the variants that belong to a specific poem, while "code_show" will return the poem IDs that belong to a given list of poem variant IDs.
+3. variant: This parameter links the physically existing variants to any variant. If the database is based on poems, the output will mirror the input. In variant-based databases, "code_search" will return all the real variants of the poem to which the input variant belongs. In other words, this query will return all the variants except for the "main variant". "code_show" is useless, it mirrors the input.
+4. mainvariant: This parameter is the opposite of the "variant" parameter. It returns only the main variant belonging to the poem to which the input variant belongs."code_show" is again useless.
+
+These catalogue entries make it possible to use some special search methods. The function "searchm" returns only "main variants" as results.
+
+### Manipulating results
+
