@@ -7,7 +7,7 @@ This Python library provides functionality to query poetical databases that are 
 ## Catalogue format
 
 The catalogue is in a MariaDB/MySQL database. The catalogue contains three tables.
-- repertoire: the list of repertories that take part in the collaboration
+- repertoire: the list of repertories that take part in the collaboration, including login data that is necessary for obtaining a read-only access of their databases
 - dbtype: the list of database types handled by the mega-repertory engine
 - connector: the actual catalogue of query templates
 
@@ -31,6 +31,24 @@ The Python library (megarep.py) is designed to use this catalogue for accessing 
 
 ### Basic use of the library
 
+The MegaRep library currently requires the pymysql and re libraries. After importing the library, it is necessary to establish a connection to the catalogue database. To obtain the password to the catalogue please write me an e-mail.
+
     import megarep
     mega = megarep.loadMegaRep(dbhost="gepeskonyv.org", dbuser="gepeskonyv_rpha_client",
                           dbpassword="***", dbname="gepeskonyv_MEGAREP")
+
+At this point, the variable "mega" is a list of all the collaborating databases. A for cycle can be used to search for something in all of the repertories.
+
+    query1 = []
+    for rep in mega:
+        query1 = query1 + rep.search('incipit', ['Ave'])
+
+At the end of this code, the variable "query1" contains all of the poems that have the string "ave" in their incipit. The example shows that the default search method is case-insensitive and disregards spaces and punctuation. Every element of the result list is itself a list of two elements: the ID of the repertory and the ID of the variant/poem. This is why the list of results from database nr. 2 can be simply added to the results from database nr. 1 in the for loop: the results will still be differentiated.
+
+At it's current state, the mega-repertory connects two databases (Répertoire de la poésie hongroise ancienne and Le Nouveau Naetebus), and "query1" would look like this:
+
+    [[1, 24373], [1, 24595], [1, 24604], [1, 24693], [1, 24694], [1, 24695], [1, 26926], [1, 27093], [1, 27356], [1, 27367], [1, 27693], [1, 28125], [1, 28340], [2, 3], [2, 8], [2, 14], [2, 18], [2, 22], [2, 23], [2, 95], [2, 161], [2, 162], [2, 163], [2, 164], [2, 165], [2, 215], [2, 259], [2, 260], [2, 261], [2, 347], [2, 353], [2, 354], [2, 372], [2, 386], [2, 402], [2, 403], [2, 408], [2, 412], [2, 413], [2, 444], [2, 447], [2, 449], [2, 458], [2, 459], [2, 460]]
+
+For listing the results in a more informative way, the "value" function can be used.
+
+    
