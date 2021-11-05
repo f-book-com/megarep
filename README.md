@@ -1,4 +1,4 @@
-# MegaRep -- a poetical mega-repertory
+# MegaRep - a poetical mega-repertory
 
 ## Aim
 
@@ -72,7 +72,25 @@ As noted before, some databases might use poems as their most basic structure, w
 3. variant: This parameter links the physically existing variants to any variant. If the database is based on poems, the output will mirror the input. In variant-based databases, "code_search" will return all the real variants of the poem to which the input variant belongs. In other words, this query will return all the variants except for the "main variant". "code_show" is useless, it mirrors the input.
 4. mainvariant: This parameter is the opposite of the "variant" parameter. It returns only the main variant belonging to the poem to which the input variant belongs."code_show" is again useless.
 
-These catalogue entries make it possible to use some special search methods. The function "searchm" returns only "main variants" as results.
+These catalogue entries make it possible to use some special search methods. The function "searchm" returns only "main variants" as results. The function "msearch" returns the "main variants" that belong to the input variants. These functions allow the researcher to use variant-based databases as if they were poem-based, so it is possible to compare results despite this fundamental difference between certain databases.
 
 ### Manipulating results
 
+The functions described above make it possible to do simple searches and to retrieve values of specific parameters. However, the library provides some useful functionality in combining and manipulating queries.
+
+#### Logical operations
+
+The functions repAnd, repOr and repAndNot all take two parameters (two query results) and use set operations (intersection, union and difference) to implement these operations.
+
+    query1 = mega.searchm('author', ['Balassi'])
+    query2 = mega.searchm('incipit', ['Julia', 'Caelia'])
+    query3 = repAnd(query1, query2)
+    query4 = repAndNot(query2, query1)
+    query5 = repOr(query1, query2)
+    print(len(query1))
+    print(len(query2))
+    print(len(query3))
+    print(len(query4))
+    print(len(query5))
+
+This example will print out the numbers 118, 12, 11, 1, 119, which show that there is indeed only one old Hungarian poem with "Julia" or "Caelia" in the incipit, which was not written by Bálint Balassi.
