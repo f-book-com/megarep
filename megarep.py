@@ -94,7 +94,7 @@ class Repertoire_MySQL:
             result = result + self.executeQuery(
                 self.searchQuery(parameter, v, method))
         result = list(dict.fromkeys(result))
-        result = mark(self.repid, result)
+        # result = mark(self.repid, result)
         return result
 
     def show(self, parameter, idy):
@@ -104,11 +104,13 @@ class Repertoire_MySQL:
         if(len(idy) > 0):
             column = 1
             for i in idy:
-                res = mark(self.repid, [i])
+                # print(i)
+                # res = mark(self.repid, [i])
+                res = [i]
                 for p in parameter:
                     r = self.executeQuery(
                         self.connector[p][column].replace(
-                            '[[ID]]', str(i).strip("[]")))
+                            '[[ID]]', "'" + str(i).strip("[]") + "'"))
                     res.append(' '.join(r))
                 result.append(res)
             # for a in range(len(result[0])):
@@ -177,33 +179,37 @@ class MegaRep:
 
 def mark(identification, listVariable):
     """Replace the elements of a list with id-element pairs."""
-    for a in range(len(listVariable)):
-        listVariable[a] = [identification, listVariable[a]]
+    # for a in range(len(listVariable)):
+    #     listVariable[a] = [identification, listVariable[a]]
     return listVariable
 
 
 def retrieve(identification, listVariable):
     """retrieve the elements of a marked list with a specific id."""
     res = []
+    if(type(listVariable) is not list):
+        listVariable = [listVariable]
     for element in listVariable:
-        if(element[0] == identification or identification == 0):
-            res.append(element[1])
+        if(re.sub(r'([0-9]+)\|(.+)', r'\1', element) == str(identification) or identification == 0):
+            res.append(element)
+    # print(identification)
+    # print(res)
     return res
 
 
 def repAnd(one, two):
     """Perform an AND logical operation on two lists."""
-    return(list(list(k) for k in (set(tuple(i) for i in one).intersection(set(tuple(j) for j in two)))))
+    return(list(set(one).intersection(two)))
 
 
 def repOr(one, two):
     """Perform an OR logical operation on two lists."""
-    return(list(list(k) for k in (set(tuple(i) for i in one).union(set(tuple(j) for j in two)))))
+    return(list(dict.fromkeys(one+two)))
 
 
 def repAndNot(one, two):
     """Perform an AND NOT logical operation on two lists."""
-    return(list(list(k) for k in (set(tuple(i) for i in one).difference(set(tuple(j) for j in two)))))
+    return(list(set(one).difference(two)))
 
 
 def repSort(result):
