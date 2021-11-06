@@ -46,16 +46,16 @@ At the end of this code, the variable "query1" contains all of the poems that ha
 
 At it's current state, the mega-repertory connects two databases (Répertoire de la poésie hongroise ancienne and Le Nouveau Naetebus), and "query1" would look like this:
 
-    [[1, 24373], [1, 24595], [1, 24604], [1, 24693], [1, 24694], [1, 24695], [1, 26926], [1, 27093], [1, 27356], [1, 27367], [1, 27693], [1, 28125], [1, 28340], [2, 3], [2, 8], [2, 14], [2, 18], [2, 22], [2, 23], [2, 95], [2, 161], [2, 162], [2, 163], [2, 164], [2, 165], [2, 215], [2, 259], [2, 260], [2, 261], [2, 347], [2, 353], [2, 354], [2, 372], [2, 386], [2, 402], [2, 403], [2, 408], [2, 412], [2, 413], [2, 444], [2, 447], [2, 449], [2, 458], [2, 459], [2, 460]]
+    ['1|24373', '1|24595', '1|24604', '1|24693', '1|24694', '1|24695', '1|26926', '1|27093', '1|27356', '1|27367', '1|27693', '1|28125', '1|28340', '2|3', '2|8', '2|14', '2|18', '2|22', '2|23', '2|95', '2|161', '2|162', '2|163', '2|164', '2|165', '2|215', '2|259', '2|260', '2|261', '2|347', '2|353', '2|354', '2|372', '2|386', '2|402', '2|403', '2|408', '2|412', '2|413', '2|444', '2|447', '2|449', '2|458', '2|459', '2|460']
 
 For listing parameter values that belong to the poems represented by these numbers, the "show" function can be used.
 
-    result1 = mega.show(['author', 'incipit'], query1)
+    result1 = mega.show(['incipit'], query1)
     print(result1)
 
 Here the output will be longer, but let's see the beginning and the end.
 
-    [[[1, 24373], '', 'Ave salutis hostia'], [[1, 24595], '', 'Patris sapientia, veritas divina'], [[1, 24604], '', 'O crux ave spes unica'], ..., [[2, 459], '', 'Ave virge Marie'], [[2, 460], '', 'Ave seynte Marie, mere al creatur']]
+    [['1|24373', 'Ave salutis hostia'], ['1|24595', 'Patris sapientia, veritas divina'], ['1|24604', 'O crux ave spes unica'], ..., ['2|459', 'Ave virge Marie'], ['2|460', 'Ave seynte Marie, mere al creatur']]
 
 Notice that "sapientia, veritas" contains "a...ve" and is shown as a query result. Of course, a more precise result set might be obtained if the search query uses regular expressions:
 
