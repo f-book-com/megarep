@@ -11,12 +11,11 @@ The catalogue is in a MariaDB/MySQL database. The catalogue contains three table
 - dbtype: the list of database types handled by the mega-repertory engine
 - connector: the actual catalogue of query templates
 
-Each row of the connector table must provide five pieces of information.
+Each row of the connector table must provide four pieces of information.
 1. id_repertoire: for which repertory the query templates in that row have been designed
 2. parameter: which parameter (eg. author, title, incipit etc.) the query templates search/show
 3. code_search: query template for searching for the given parameter
 4. code_show: query template for showing the data belonging to the given parameter in case of a given list of poems
-5. force_exact: if this boolean variable is set to 1 (True), the system will only give exact match results (=)
 
 The code_search queries look for identifiers of poem variants that fit the parameter and the given value. For databases that are based on poems rather than every variant of poems, these queries return identifiers of poems. For databases that describe poem variants as basic entities (eg. Répertoire de la poésie hongroise ancienne), there are special queries that connect variants to poem and vice versa (see later). The code_search queries take one value for one parameter, and they can use various search methods (in the case of MySQL, for example, LIKE, =, REGEXP etc), and they return a list of poem/variant IDs.
 
@@ -69,18 +68,11 @@ The tolerant search currently gives 45 hits, while the precise search only 31 hi
 As noted before, some databases might use poems as their most basic structure, while in the case of other literary traditions, a more detailed approach might prove to be useful. You can consider poems or variants to be the basic unit of a database. If the database does not deal with variants, the MegaRep system considers "variant" as a synonym for "poem". On the other hand, for those databases where variants are the basic unit, some special parameters had to be added.
 
 1. mainlist: The MegaRep system considers data belonging to the poem as a whole to belong to the "main variant" of the poem. In the case of such databases, this "main variant" is an idealized, abstract entity, which does not have any original source. The parameter "mainlist" is a technical one, and it only has a "code_search" entry: it is used by the MegaRep library, which, when loading each database, uses this query to retreive all the variant IDs that belong to whole poems (or "main variants").
-2. listall: Sometimes it might be useful to have the list of all variants in the database, which "code_search" will return.
-3. poem: This parameter links variant IDs to poem IDs. If the database does not deal with variants, the output of this query will be the same as its input. In variant-based databases, "code_search" will return all the variants that belong to a specific poem, while "code_show" will return the poem IDs that belong to a given list of poem variant IDs.
-4. variant: This parameter links the physically existing variants to any variant. If the database is based on poems, the output will mirror the input. In variant-based databases, "code_search" will return all the real variants of the poem to which the input variant belongs. In other words, this query will return all the variants except for the "main variant". "code_show" is useless, it mirrors the input.
-5. mainvariant: This parameter is the opposite of the "variant" parameter. It returns only the main variant belonging to the poem to which the input variant belongs."code_show" is again useless.
+2. poem: This parameter links variant IDs to poem IDs. If the database does not deal with variants, the output of this query will be the same as its input. In variant-based databases, "code_search" will return all the variants that belong to a specific poem, while "code_show" will return the poem IDs that belong to a given list of poem variant IDs.
+3. variant: This parameter links the physically existing variants to any variant. If the database is based on poems, the output will mirror the input. In variant-based databases, "code_search" will return all the real variants of the poem to which the input variant belongs. In other words, this query will return all the variants except for the "main variant". "code_show" is useless, it mirrors the input.
+4. mainvariant: This parameter is the opposite of the "variant" parameter. It returns only the main variant belonging to the poem to which the input variant belongs."code_show" is again useless.
 
 These catalogue entries make it possible to use some special search methods. The function "searchm" returns only "main variants" as results. The function "msearch" returns the "main variants" that belong to the input variants. These functions allow the researcher to use variant-based databases as if they were poem-based, so it is possible to compare results despite this fundamental difference between certain databases.
-
-Another special search function is "parameter", which returns the list of all possible values for a given parameter. For example,
-
-    query1 = mega.parameter('incipit')
-
-returns all 2638 incipit values of the poems described in the current two databases.
 
 ### Manipulating results
 
@@ -102,3 +94,74 @@ The functions repAnd, repOr and repAndNot all take two parameters (two query res
     print(len(query5))
 
 This example will print out the numbers 118, 12, 11, 1, 119, which show that there is indeed only one old Hungarian poem with "Julia" or "Caelia" in the incipit, which was not written by Bálint Balassi.
+
+#### Evaluating operations
+
+##### repVal(data, index=1)
+
+This function gives a list of all the values (without repetition) in an output from a show function. It will process the column of the repShow results according to the value of index (default 1).
+
+##### repStat(data, index=1)
+
+This function takes the same arguments as repVal, but evaluates data a little more. The output of this function is a dictionary, where possible values are the key, and the dictionary value is a list containing the count of results belonging to that value and the percentage of that value among the results. Percentage values are rounded and therefore never completely precise, so they are presented as string variables for easier reading. The count value, which is precise, should be used if further calculations are necessary.
+
+##### repDisp(result)
+
+This function prints the results of a show, repVal or repStat function in a readable way on the Python console. It might be used with the output of any of the MegaRep functions.
+
+##### repExport(result, path)
+
+This function creates a usable CSV export from the results of any of the MegaRep functions. Warning: this function overwrites the file under "path" if it exists.
+
+##### Example
+
+    query1 = mega.searchm('genre', ['história'])
+    result1 = mega.show(['author'], query1)
+    repDisp(repVal(query1))
+
+This code will produce a list of the authors.
+
+    Alistáli Márton
+    Balassi Bálint
+    Baranyai Pál
+    ...
+    Zombori Antal
+    Ádám János
+    
+Note the inability of the library to sort accented characters properly. It is of course possible to implement a correct sorting method, but this is not a priority at this development stage. Adding the following code will also produce the statistical results.
+
+    repDisp(repStat(result1))
+
+The output is the following.
+
+    	[22, '11.9%']
+    Alistáli Márton	[1, '0.5%']
+    Balassi Bálint	[1, '0.5%']
+    Baranyai Pál	[1, '0.5%']
+    Batizi András	[5, '2.7%']
+    Beythe András	[1, '0.5%']
+    Biai Gáspár	[1, '0.5%']
+    Bogáti Fazakas Miklós	[14, '7.6%']
+    ...
+    Zombori Antal	[1, '0.5%']
+    Ádám János	[1, '0.5%']
+
+These outputs are obviously better handled by a spreadsheet application, or they should be processed further.
+
+    repExport(repStat(result1), 'export.csv')
+
+## Serious limitations
+
+It is at this stage of the development, that further parameters will be implemented, first for the Répertoire de la poésie hongroise ancienne database. So far, the following parameters have been implemented for this database:
+
+author
+date
+dedication
+genre
+incipit
+melrefd (The poem's melody is referenced by another poem.)
+refsmel (The poem references another poem's melody.)
+text (This is available for approximately 10% of the database.)
+title
+
+The code lacks proper error handling and should be consistently commented for easier readability. Feel free to write any comments or suggestions.
