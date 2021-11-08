@@ -3,6 +3,7 @@
 ## Aim
 
 This Python library provides functionality to query poetical databases that are connected by a catalogue of query templates.
+The development was preceded by a pilot project about ten years before by Péter Király, and both projects were supervised by Levente Seláf, Eötvös Loránd University, Budapest, Hungary. Links to the pilot project can be found at the bottom of this document.
 
 ## Catalogue format
 
@@ -165,3 +166,8 @@ text (This is available for approximately 10% of the database.)
 title
 
 The code lacks proper error handling and should be consistently commented for easier readability. Feel free to write any comments or suggestions.
+
+## Links to the former pilot project
+
+https://github.com/pkiraly/megarep
+https://kirunews.blog.hu/2014/10/26/federated_search_engine_of_european_poetical_databases
