@@ -1,9 +1,27 @@
 # MegaRep - a poetical mega-repertory
 
-## Aim
+## Project description
 
 This Python library provides functionality to query poetical databases that are connected by a catalogue of query templates.
-The development was preceded by a pilot project about ten years before by Péter Király, and both projects were supervised by Levente Seláf, Eötvös Loránd University, Budapest, Hungary. Links to the pilot project can be found at the bottom of this document.
+The development is supervised by Levente Seláf, Eötvös Loránd University, Budapest, Hungary, who also lead the development of a pilot about ten years before by Péter Király. The project complements somewhat the Averell software developed within the EU funded POSTDATA research. Links to these projects can be found at the bottom of this document.
+
+### Current connections between poetical databases.
+
+The pilot project of Péter Király connected databases by requiring them to provide a standardized query system, which the connecting program used to find poems from all databases. The result was a list of poems, with hyperlinks to their corresponding web pages.
+
+One of the POSTDATA project's goals is to find a common ground, a "domain model" of European poetry, in order to facilitate a Linked Open Data model of European poetry repositories. This "domain model" defines a very detailed standard of annotating documents for enabling comparative research. The Averell software connects the collaborating repositories by allowing the user to download them and providing a tool for converting them into a uniform JSON format for further processing.
+
+### Claims
+
+This MegaRep system claims to offer the following new features, especially to complement the Averell software's functionality.
+
+1. The system requires the absolute minimum work from the maintainers of collaborating databases.
+    - This system uses every database's own query system, so that database maintainers do not have to provide a special search engine (such as Apache Lucene) on their own.
+    - Queries are assembled using query templates. These templates must follow certain rules, but they are essentially identical to normal queries of the same database. Database maintainers only have to provide queries they are familiar with.
+2. MegaRep itself allows for very complex queries, while being easy to use and combine with other tools. These queries can be far more complex than anything that would be possible on traditional web interfaces of poetry databases.
+3. MegaRep provides tools for finding poems and accessing their metadata (and if available, their text) withouth having to download any unnecessary data.
+    - While the repositories provided through the Averell software contain vast amounts of annotated texts, the POSTDATA system offers very little help so far in finding specific poems. With the Averell software, the user downloads complete corpora for further processing. If the user wishes to select or sort specific poems, they have to code or use different programs to do so.
+    - The MegaRep system should in the future be connected to Averell. The selected poems' annotated text should be compiled by Averell into a processable common JSON file for further analysis. Or, if the computerized close reading of Averell JSON corpora returns a list of poems that are interesting, this list should be possible to combine with MegaRep search results.
 
 ## Catalogue format
 
@@ -167,8 +185,14 @@ title
 
 The code lacks proper error handling and should be consistently commented for easier readability. Feel free to write any comments or suggestions.
 
-## Links to the former pilot project
+## Links to the referenced projects
 
 https://github.com/pkiraly/megarep
 
 https://kirunews.blog.hu/2014/10/26/federated_search_engine_of_european_poetical_databases
+
+https://averell.readthedocs.io/en/latest/readme.html
+
+https://github.com/linhd-postdata/averell/tree/de65877ab2ae8f02a8cb7fd21d275417dc52cd42
+
+https://postdata.linhd.uned.es/results/ontologies/domain-model-ep/
