@@ -22,8 +22,8 @@ class Repertoire_MySQL:
         self.tolerance = {' ': '', ',': ''}
         curs.execute(
             "SELECT parameter, code_search, code_show, force_exact\
-                FROM connector WHERE id_repertoire = "
-            + str(self.repid) + ";")
+                FROM connector WHERE id_repertoire = '"
+            + str(self.repid) + "';")
         self.connector = {}
         for a in curs.fetchall():
             # print(a)
@@ -68,6 +68,7 @@ class Repertoire_MySQL:
             method = '='
         if(value == ''):
             method = '='
+        # value = value.replace('"', '\\"')
         if(method == 'LIKE'):
             query = self.connector[parameter][column].replace('[[METHOD]]',
                                                               method).replace(
@@ -83,9 +84,9 @@ class Repertoire_MySQL:
             if(method == 'LIKE'):
                 query = re.sub(r'(.*)\[\[(.*?)\]\](.*)', r'\1' +
                            self.replaceListSQL(r'\2', self.tolerance) +
-                           r'\3', query)
+                           r'\3', query, flags=re.S)
             else:
-                query = re.sub(r'(.*)\[\[(.*?)\]\](.*)', r'\1' + r'\2' + r'\3', query)
+                query = re.sub(r'(.*)\[\[(.*?)\]\](.*)', r'\1' + r'\2' + r'\3', query, flags=re.S)
         # print(query)
         return query
 
@@ -103,6 +104,7 @@ class Repertoire_MySQL:
                 self.searchQuery(parameter, v, method))
         result = list(dict.fromkeys(result))
         # result = mark(self.repid, result)
+        # print(result)
         return result
 
     def show(self, parameter, idy):
@@ -126,7 +128,7 @@ class Repertoire_MySQL:
         return self.executeQuery(re.sub(r'(.*) WHERE.*( ORDER BY.*|$)', r'\1\2', self.connector[parameter][1]))
 
 
-class MegaRep:
+class PDC:
     """Represents a collection of poetical databases."""
     
     def __init__(self, dbhost, dbuser, dbpassword, dbname, selected=[0]):
@@ -139,7 +141,6 @@ class MegaRep:
         self.rep = []
         for a in cursor_megarepdb.fetchall():
             if(selected == [0] or a[0] in selected):
-                print("Loading database: " + a[6])
                 if(a[1] == 1):
                     self.rep.append(Repertoire_MySQL(
                         a[0], a[2], a[3], a[4], a[5], a[6], cursor_megarepdb))
@@ -197,29 +198,44 @@ class MegaRep:
 def retrieve(identification, listVariable):
     """retrieve the elements of a marked list with a specific id."""
     res = []
+    # print(identification, listVariable)
     if(type(listVariable) is not list):
         listVariable = [listVariable]
     for element in listVariable:
-        if(re.sub(r'([0-9]+)\|(.+)', r'\1', element) == str(identification) or identification == 0):
+        if(re.sub(r'([0-9A-Z]+)\-v(.+)', r'\1', element) == str(identification) or identification == 0):
             res.append(element)
     # print(identification)
     # print(res)
     return res
 
 
-def repAnd(one, two):
+def repAnd(one, *more):
     """Perform an AND logical operation on two lists."""
-    return(list(set(one).intersection(two)))
+    result = one
+    if(len(more)>0):
+        for two in more:
+            result = (list(set(result).intersection(two)))
+    return(result)
 
 
-def repOr(one, two):
+def repOr(one, *more):
     """Perform an OR logical operation on two lists."""
-    return(list(set(one).union(two)))
+    result = one
+    if(len(more)>0):
+        for two in more:
+            result = (list(set(result).union(two)))
+    return(result)
+    # return(list(set(one).union(two)))
 
 
-def repAndNot(one, two):
+def repAndNot(one, *more):
     """Perform an AND NOT logical operation on two lists."""
-    return(list(set(one).difference(two)))
+    result = one
+    if(len(more)>0):
+        for two in more:
+            result = (list(set(result).difference(two)))
+    return(result)
+    # return(list(set(one).difference(two)))
 
 
 def repStat(data, index=1):
@@ -230,7 +246,7 @@ def repStat(data, index=1):
     """
     datalist = repVal(data, index)
     result = {}
-    
+    order = []
     for value in datalist:
         count = 0
         for a in data:
@@ -242,6 +258,9 @@ def repStat(data, index=1):
             count = count + 1
         x = result[value]*100/count
         result[value] = [result[value], str(round(x, 1)) + '%']
+    for value in result:
+        order.append([value, result[value][0], result[value][1]])
+    order.sort(key = lambda pap: pap[1], reverse = True)
         # print(result[value])
     
     # for a in data:
@@ -254,7 +273,7 @@ def repStat(data, index=1):
     # for b, c in result.items():
     #     result[b].append(str(round((result[b][0]*100)/count)) + '%')
     # res = sorted(result)
-    return result
+    return order
 
 
 def repVal(data, index=1):
