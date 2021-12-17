@@ -1,4 +1,4 @@
-# MegaRep - a poetical mega-repertory
+# PDC - Poetry Database Connector
 
 ## Project description
 
@@ -27,7 +27,7 @@ for converting them into a uniform JSON format for further processing.
 
 ### Claims
 
-This MegaRep system claims to offer the following new features,
+This PDC system claims to offer the following new features,
 especially to complement the Averell software’s functionality.
 
 1.  The system requires the absolute minimum work from the maintainers
@@ -41,11 +41,11 @@ especially to complement the Averell software’s functionality.
         normal queries of the same database. Database maintainers only
         have to provide queries they are familiar with.
 
-2.  MegaRep itself allows for very complex queries while being easy to
+2.  PDC itself allows for very complex queries while being easy to
     use and combine with other tools. These queries can be far more
     complex than anything that would be possible on traditional web
     interfaces of poetry databases.
-3.  MegaRep provides tools for finding poems and accessing their
+3.  PDC provides tools for finding poems and accessing their
     metadata (and if available, their text) without having to download
     any unnecessary data.
 
@@ -56,12 +56,12 @@ especially to complement the Averell software’s functionality.
         further processing. If the user wishes to select or sort
         specific poems, they have to code or use different programs to
         do so.
-    -   The MegaRep system should in the future be connected to Averell.
+    -   The PDC system should in the future be connected to Averell.
         The selected poems’ annotated text should be compiled by Averell
         into a processable common JSON file for further analysis. Or, if
         the computerized close reading of Averell JSON corpora returns a
         list of poems that are interesting, this list should be possible
-        to combine with MegaRep search results.
+        to combine with PDC search results.
 
 ## Catalog format
 
@@ -69,7 +69,7 @@ The catalog is in a MariaDB/MySQL database. The catalog contains three
 tables. - repertoire: the list of repertories that take part in the
 collaboration, including login data that is necessary for obtaining a
 read-only access of their databases - dbtype: the list of database types
-handled by the mega-repertory engine - connector: the actual catalog of
+handled by the PDC engine - connector: the actual catalog of
 query templates
 
 Each row of the connector table must provide four pieces of information.
@@ -105,26 +105,26 @@ There is one catalog currently hosted on gepeskonyv.org.
 
 ## Library
 
-The Python library (megarep.py) is designed to use this catalog for
+The Python library (pdc.py) is designed to use this catalog for
 accessing poetical databases, and also to provide some useful features
 in dealing with query results.
 
 ### Basic search with the library
 
-The MegaRep library currently requires the pymysql and re libraries.
+The PDC library currently requires the pymysql and re libraries.
 After importing the library, it is necessary to establish a connection
 to the catalog database. This is done by initializing an instance of the
-MegaRep class. (To obtain the password to the catalog please write me an
+PDC class. (To obtain the password to the catalog please write me an
 e-mail.)
 
-    import megarep
-    mega = megarep.MegaRep(dbhost="gepeskonyv.org", dbuser="gepeskonyv\_rpha\_client", dbpassword="\*\*\*", dbname="gepeskonyv\_MEGAREP")
+    import pdc
+    rep = pdc.PDC(dbhost="gepeskonyv.org", dbuser="gepeskonyv\_rpha\_client", dbpassword="\*\*\*", dbname="gepeskonyv\_MEGAREP")
 
-At this point, the variable “mega” represents the whole mega-repertory.
+At this point, the variable “rep” represents the whole mega-repertory.
 You can search it as if it was one single database, but you can also use
 any of its member databases separate from the others.
 
-    query1 = mega.search('incipit', \['Ave'\])
+    query1 = rep.search('incipit', \['Ave'\])
     print(query1)
 
 At the end of this code, the variable “query1” contains all of the poems
@@ -136,7 +136,7 @@ variant/poem. This is why the list of results from database nr. 2 can be
 simply added to the results from database nr. 1 in the for loop: the
 results will still be differentiated.
 
-At it’s current state, the mega-repertory connects two databases
+At it’s current state, the PDC connects two databases
 (Répertoire de la poésie hongroise ancienne and Le Nouveau Naetebus),
 and “query1” would look like this:
 
@@ -151,7 +151,7 @@ and “query1” would look like this:
 For listing parameter values that belong to the poems represented by
 these numbers, the “show” function can be used.
 
-    result1 = mega.show(\['incipit'\], query1)
+    result1 = rep.show(\['incipit'\], query1)
     print(result1)
 
 Here the output will be longer, but let’s see the beginning and the end.
@@ -165,7 +165,7 @@ Notice that “sapientia, veritas” contains “a…ve” and is shown as a que
 result. Of course, a more precise result set might be obtained if the
 search query uses regular expressions:
 
-    query1 = mega.search('incipit', \['(\^\|.+ )(\[Aa\]ve)( .\*\|$)'\],
+    query1 = rep.search('incipit', \['(\^\|.+ )(\[Aa\]ve)( .\*\|$)'\],
     'REGEXP')
 
 The tolerant search currently gives 45 hits, while the precise search
@@ -180,16 +180,16 @@ As noted before, some databases might use poems as their most basic
 structure, while in the case of other literary traditions, a more
 detailed approach might prove to be useful. You can consider poems or
 variants to be the basic unit of a database. If the database does not
-deal with variants, the MegaRep system considers “variant” as a synonym
+deal with variants, the PDC system considers “variant” as a synonym
 for “poem”. On the other hand, for those databases where variants are
 the basic unit, some special parameters had to be added.
 
-1.  mainlist: The MegaRep system considers data belonging to the poem as
+1.  mainlist: The PDC system considers data belonging to the poem as
     a whole to belong to the “main variant” of the poem. In the case of
     such databases, this “main variant” is an idealized, abstract
     entity, which does not have any original source. The parameter
     “mainlist” is a technical one, and it only has a “code\_search”
-    entry: it is used by the MegaRep library, which, when loading each
+    entry: it is used by the PDC library, which, when loading each
     database, uses this query to retrieve all the variant IDs that
     belong to whole poems (or “main variants”).
 2.  poem: This parameter links variant IDs to poem IDs. If the database
@@ -229,8 +229,8 @@ The functions repAnd, repOr and repAndNot all take two parameters (two
 query results) and use set operations (intersection, union and
 difference) to implement these operations.
 
-    query1 = mega.searchm('author', \['Balassi'\])
-    query2 = mega.searchm('incipit', \['Julia', 'Caelia'\])
+    query1 = rep.searchm('author', \['Balassi'\])
+    query2 = rep.searchm('incipit', \['Julia', 'Caelia'\])
     query3 = repAnd(query1, query2)
     query4 = repAndNot(query2, query1)
     query5 = repOr(query1, query2)
@@ -267,18 +267,18 @@ further calculations are necessary.
 
 This function prints the results of a show, repVal or repStat function
 in a readable way on the Python console. It might be used with the
-output of any of the MegaRep functions.
+output of any of the PDC functions.
 
 ##### repExport(result, path)
 
 This function creates a usable CSV export from the results of any of the
-MegaRep functions. Warning: this function overwrites the file under
+PDC functions. Warning: this function overwrites the file under
 “path” if it exists.
 
 ##### Example
 
-    query1 = mega.searchm('genre', \['história'\])
-    result1 = mega.show(\['author'\], query1)
+    query1 = rep.searchm('genre', \['história'\])
+    result1 = rep.show(\['author'\], query1)
     repDisp(repVal(query1))
 
 This code will produce a list of the authors.
@@ -322,13 +322,20 @@ implemented, first for the Répertoire de la poésie hongroise ancienne
 database. So far, the following parameters have been implemented for
 this database:
 
+-   acrostic
 -   author
+-   colophon
 -   date
 -   dedication
 -   genre
 -   incipit
+-   length
+-   melody
 -   melrefd (The poem’s melody is referenced by another poem.)
+-   metre
 -   refsmel (The poem references another poem’s melody.)
+-   rhyme
+-   syllables
 -   text (This is available for approximately 10% of the database.)
 -   title
 
@@ -338,7 +345,7 @@ suggestions.
 
 ## Links to the referenced projects
 
-https://github.com/pkiraly/megarep
+https://github.com/pkiraly/pdc
 
 https://kirunews.blog.hu/2014/10/26/federated\_search\_engine\_of\_european\_poetical\_databases
 
