@@ -345,7 +345,7 @@ suggestions.
 
 ## Links to the referenced projects
 
-https://github.com/pkiraly/pdc
+https://github.com/pkiraly/megarep
 
 https://kirunews.blog.hu/2014/10/26/federated\_search\_engine\_of\_european\_poetical\_databases
 
