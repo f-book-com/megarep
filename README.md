@@ -118,13 +118,13 @@ PDC class. (To obtain the password to the catalog please write me an
 e-mail.)
 
     import pdc
-    rep = pdc.PDC(dbhost="gepeskonyv.org", dbuser="gepeskonyv\_rpha\_client", dbpassword="\*\*\*", dbname="gepeskonyv\_MEGAREP")
+    rep = pdc.PDC(dbhost="gepeskonyv.org", dbuser="gepeskonyv\_rpha\_client", dbpassword="***", dbname="gepeskonyv\_MEGAREP")
 
 At this point, the variable “rep” represents the whole mega-repertory.
 You can search it as if it was one single database, but you can also use
 any of its member databases separate from the others.
 
-    query1 = rep.search('incipit', \['Ave'\])
+    query1 = rep.search('incipit', ['Ave'])
     print(query1)
 
 At the end of this code, the variable “query1” contains all of the poems
@@ -140,13 +140,7 @@ At it’s current state, the PDC connects two databases
 (Répertoire de la poésie hongroise ancienne and Le Nouveau Naetebus),
 and “query1” would look like this:
 
-    \['1\|24373', '1\|24595', '1\|24604', '1\|24693', '1\|24694',
-    '1\|24695', '1\|26926', '1\|27093', '1\|27356', '1\|27367', '1\|27693',
-    '1\|28125', '1\|28340', '2\|3', '2\|8', '2\|14', '2\|18', '2\|22',
-    '2\|23', '2\|95', '2\|161', '2\|162', '2\|163', '2\|164', '2\|165',
-    '2\|215', '2\|259', '2\|260', '2\|261', '2\|347', '2\|353', '2\|354',
-    '2\|372', '2\|386', '2\|402', '2\|403', '2\|408', '2\|412', '2\|413',
-    '2\|444', '2\|447', '2\|449', '2\|458', '2\|459', '2\|460'\]
+    ['NN-v3', 'NN-v8', 'NN-v14', 'NN-v18', 'NN-v22', 'NN-v23', 'NN-v95', 'NN-v161', 'NN-v162', 'NN-v163', 'NN-v164', 'NN-v165', 'NN-v215', 'NN-v259', 'NN-v260', 'NN-v261', 'NN-v347', 'NN-v353', 'NN-v354', 'NN-v372', 'NN-v386', 'NN-v402', 'NN-v403', 'NN-v408', 'NN-v412', 'NN-v413', 'NN-v444', 'NN-v447', 'NN-v449', 'NN-v458', 'NN-v459', 'NN-v460', 'RPHA-v24373', 'RPHA-v24595', 'RPHA-v24604', 'RPHA-v24693', 'RPHA-v24694', 'RPHA-v24695', 'RPHA-v26926', 'RPHA-v27093', 'RPHA-v27356', 'RPHA-v27367', 'RPHA-v27693', 'RPHA-v28125', 'RPHA-v28340']
 
 For listing parameter values that belong to the poems represented by
 these numbers, the “show” function can be used.
@@ -156,17 +150,13 @@ these numbers, the “show” function can be used.
 
 Here the output will be longer, but let’s see the beginning and the end.
 
-    \[\['1\|24373', 'Ave salutis hostia'\], \['1\|24595', 'Patris sapientia,
-    veritas divina'\], \['1\|24604', 'O crux ave spes unica'\], ...,
-    \['2\|459', 'Ave virge Marie'\], \['2\|460', 'Ave seynte Marie, mere al
-    creatur'\]\]
+    [['NN-v3', ['Ave en cui sans nul nombre a']], ['NN-v8', ['Glorieuse vierge Royne En cui par la vertu divine']], ['NN-v14', ['Ave dame des angres de paradis royne']], ['RPHA-v27367', ['Sírva veszékel most szegény Magyarország']], ['RPHA-v27693', ['Dávid mikor a veszedelmet látá']], ['RPHA-v28125', ['Nemes földjét a szent népnek pogány rablá, veszté']], ['RPHA-v28340', ['Vitézek, mi lehet e széles föld felett szebb dolog a végeknél']]]
 
-Notice that “sapientia, veritas” contains “a…ve” and is shown as a query
+Notice that “par la vertu divine” contains “a…ve” and is shown as a query
 result. Of course, a more precise result set might be obtained if the
 search query uses regular expressions:
 
-    query1 = rep.search('incipit', \['(\^\|.+ )(\[Aa\]ve)( .\*\|$)'\],
-    'REGEXP')
+    query1 = rep.search('incipit', ['(^|.+ )([Aa]ve)( .*|$)'], 'REGEXP')
 
 The tolerant search currently gives 45 hits, while the precise search
 only 31 hits. If needed, the library will be extended to other database
@@ -229,8 +219,8 @@ The functions repAnd, repOr and repAndNot all take two parameters (two
 query results) and use set operations (intersection, union and
 difference) to implement these operations.
 
-    query1 = rep.searchm('author', \['Balassi'\])
-    query2 = rep.searchm('incipit', \['Julia', 'Caelia'\])
+    query1 = rep.searchm('author', ['Balassi'])
+    query2 = rep.searchm('incipit', ['Julia', 'Caelia'])
     query3 = repAnd(query1, query2)
     query4 = repAndNot(query2, query1)
     query5 = repOr(query1, query2)
@@ -277,8 +267,8 @@ PDC functions. Warning: this function overwrites the file under
 
 ##### Example
 
-    query1 = rep.searchm('genre', \['história'\])
-    result1 = rep.show(\['author'\], query1)
+    query1 = rep.searchm('genre', ['história'])
+    result1 = rep.show(['author'], query1)
     repDisp(repVal(query1))
 
 This code will produce a list of the authors.
@@ -299,17 +289,17 @@ will also produce the statistical results.
 
 The output is the following.
 
-    \[22, '11.9%'\]
-    Alistáli Márton \[1, '0.5%'\]
-    Balassi Bálint \[1, '0.5%'\]
-    Baranyai Pál \[1, '0.5%'\]
-    Batizi András \[5, '2.7%'\]
-    Beythe András \[1, '0.5%'\]
-    Biai Gáspár \[1, '0.5%'\]
-    Bogáti Fazakas Miklós \[14, '7.6%'\]
+    [22, '11.9%']
+    Alistáli Márton [1, '0.5%']
+    Balassi Bálint  [1, '0.5%']
+    Baranyai Pál    [1, '0.5%']
+    Batizi András   [5, '2.7%']
+    Beythe András   [1, '0.5%']
+    Biai Gáspár [1, '0.5%']
+    Bogáti Fazakas Miklós   [14, '7.6%']
     ...
-    Zombori Antal \[1, '0.5%'\]
-    Ádám János \[1, '0.5%'\]
+    Zombori Antal   [1, '0.5%']
+    Ádám János  [1, '0.5%']
 
 The first row of the results represents an empty string, where the author is unknown. These outputs are obviously better handled by a spreadsheet application, or they should be processed further.
 
